@@ -81,11 +81,6 @@ your Home Assistant. This adds a layer in front of the Home Assistant login
 but can get in the way of the companion apps. When unset, the setting from
 your openport.io profile applies.
 
-### `server` (optional)
-
-Alternative openport server to connect to. Only needed for self-hosted or
-test setups; leave unset to use openport.io.
-
 ### `verbose`
 
 Enable debug logging of the openport client.
