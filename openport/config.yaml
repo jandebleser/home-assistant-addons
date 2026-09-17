@@ -1,5 +1,5 @@
 name: Openport
-version: "1.0.0"
+version: "1.0.1"
 slug: openport
 description: Reach your Home Assistant from anywhere via an openport.io https tunnel
 url: https://openport.io

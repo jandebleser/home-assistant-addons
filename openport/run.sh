@@ -6,6 +6,16 @@ set -e
 # address (https://<xxxxx>.u.openport.io) survives restarts and updates.
 export HOME=/data
 
+# The openport client dials "localhost:<port>", which glibc resolves to ::1
+# first. Home Assistant then sees the proxy as ::1, which is rarely in
+# trusted_proxies. Strip "localhost" from the ::1 line in this container's
+# /etc/hosts so the client connects over 127.0.0.1 instead. /etc/hosts is a
+# bind mount, so rewrite it in place rather than letting sed rename it.
+if grep -q "^::1.*localhost" /etc/hosts; then
+    HOSTS_CONTENT="$(sed 's/^::1[[:blank:]].*/::1 ip6-localhost ip6-loopback/' /etc/hosts)"
+    echo "${HOSTS_CONTENT}" > /etc/hosts
+fi
+
 TOKEN="$(bashio::config 'key_registration_token')"
 PORT="$(bashio::config 'port')"
 KEY_NAME="$(bashio::config 'key_name')"

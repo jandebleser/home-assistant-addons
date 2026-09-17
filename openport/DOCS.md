@@ -15,7 +15,19 @@ normally.
    token**.
 3. Install this add-on and paste the token into the
    `key_registration_token` option.
-4. Start the add-on and open the log. After a few seconds it prints your
+4. Allow proxied requests in Home Assistant: the tunnel reaches your
+   installation through a local proxy, so `configuration.yaml` needs:
+
+   ```yaml
+   http:
+     use_x_forwarded_for: true
+     trusted_proxies:
+       - 127.0.0.1
+   ```
+
+   Restart Home Assistant after adding this. Without it, requests through
+   the tunnel fail with `400: Bad Request`.
+5. Start the add-on and open the log. After a few seconds it prints your
    public address, e.g.:
 
    ```
@@ -24,7 +36,7 @@ normally.
 
    Your Home Assistant is now reachable at `https://abcde.u.openport.io`.
 
-5. Tell Home Assistant about its new external address: go to
+6. Tell Home Assistant about its new external address: go to
    **Settings → System → Network** and set the **External URL** to
    `https://<xxxxx>.u.openport.io` (or set `homeassistant.external_url` in
    `configuration.yaml`). The companion apps can use this URL as their
