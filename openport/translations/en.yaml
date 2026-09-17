@@ -1,0 +1,35 @@
+configuration:
+  key_registration_token:
+    name: Key registration token
+    description: >-
+      Links this machine to your openport account. Find it at
+      https://openport.io/user/keys.
+  port:
+    name: Local port
+    description: >-
+      The local port the tunnel forwards to. 8123 is the Home Assistant
+      frontend.
+  key_name:
+    name: Key name
+    description: The name this machine gets in your key list on openport.io.
+  keep_alive_seconds:
+    name: Keep-alive interval
+    description: Seconds between keep-alive messages on the tunnel.
+  use_websocket_transport:
+    name: WebSocket transport
+    description: >-
+      Connect to the openport servers over WebSockets (port 443) instead of
+      SSH. Useful on networks that block outbound SSH.
+  ip_link_protection:
+    name: IP link protection
+    description: >-
+      Require visitors to click a secret link before they can reach Home
+      Assistant. May interfere with the companion apps. Leave unset to use
+      your openport.io profile setting.
+  server:
+    name: Openport server
+    description: >-
+      Alternative openport server. Only for self-hosted or test setups.
+  verbose:
+    name: Verbose logging
+    description: Enable debug logging of the openport client.

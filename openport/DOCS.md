@@ -1,0 +1,101 @@
+# Openport add-on
+
+This add-on runs the [openport](https://openport.io) client with an
+http-forward tunnel pointed at your Home Assistant. Your installation becomes
+reachable on a stable public address like `https://abcde.u.openport.io`,
+without any port forwarding or firewall changes. The tunnel supports
+WebSockets, so the Home Assistant frontend and the companion apps work
+normally.
+
+## Setup
+
+1. Create an account at [openport.io](https://openport.io) if you don't have
+   one.
+2. Go to <https://openport.io/user/keys> and copy your **key registration
+   token**.
+3. Install this add-on and paste the token into the
+   `key_registration_token` option.
+4. Start the add-on and open the log. After a few seconds it prints your
+   public address, e.g.:
+
+   ```
+   Now forwarding remote address abcde.u.openport.io to localhost
+   ```
+
+   Your Home Assistant is now reachable at `https://abcde.u.openport.io`.
+
+5. Tell Home Assistant about its new external address: go to
+   **Settings → System → Network** and set the **External URL** to
+   `https://<xxxxx>.u.openport.io` (or set `homeassistant.external_url` in
+   `configuration.yaml`). The companion apps can use this URL as their
+   server address.
+
+The address is tied to this add-on's stored session and key (kept in the
+add-on's `/data`), so it stays the same across restarts, reboots, and add-on
+updates. Uninstalling the add-on discards it.
+
+## Options
+
+### `key_registration_token` (required)
+
+The token that links this machine to your openport account. Find it at
+<https://openport.io/user/keys>. Registration happens once, on the first
+start; the token itself is not stored on disk afterwards.
+
+### `port`
+
+The local port the tunnel forwards to. Default `8123`, the Home Assistant
+frontend. You normally don't need to change this, but you can point the
+tunnel at any other service running on the host.
+
+### `key_name`
+
+The name this machine gets in your key list on openport.io. Default
+`home-assistant`.
+
+### `keep_alive_seconds`
+
+Interval between keep-alive messages on the tunnel. Default `120`.
+
+### `use_websocket_transport`
+
+Connect to the openport servers over the WebSocket protocol (port 443)
+instead of SSH. Useful on networks that block outbound SSH. Default `false`.
+
+### `ip_link_protection` (optional)
+
+When enabled, visitors must first click a secret link before they can reach
+your Home Assistant. This adds a layer in front of the Home Assistant login
+but can get in the way of the companion apps. When unset, the setting from
+your openport.io profile applies.
+
+### `server` (optional)
+
+Alternative openport server to connect to. Only needed for self-hosted or
+test setups; leave unset to use openport.io.
+
+### `verbose`
+
+Enable debug logging of the openport client.
+
+## Security considerations
+
+- Your Home Assistant login page becomes reachable from the internet. Make
+  sure every user has a strong password, and consider enabling
+  [multi-factor authentication](https://www.home-assistant.io/docs/authentication/multi-factor-auth/).
+- The tunnel endpoint is HTTPS; traffic between the openport server and your
+  Home Assistant travels through the encrypted tunnel.
+- `ip_link_protection` adds a shared-secret gate in front of everything, at
+  the cost of app compatibility.
+
+## Troubleshooting
+
+- **The log says the key registration failed**: check that the token was
+  copied completely from <https://openport.io/user/keys>. Changing the token
+  in the configuration triggers a new registration on the next start.
+- **The address changed**: the session is stored in the add-on's private
+  data. It survives restarts and updates, but uninstalling the add-on (or
+  removing the session on openport.io) releases the address.
+- **Connection refused errors in the log**: the add-on reaches Home Assistant
+  on `localhost:<port>` via the host network; verify the `port` option
+  matches the port Home Assistant actually listens on.

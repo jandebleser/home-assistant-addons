@@ -1,0 +1,63 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+set -e
+
+# Keep the openport identity key and session database on /data so the tunnel
+# address (https://<xxxxx>.u.openport.io) survives restarts and updates.
+export HOME=/data
+
+TOKEN="$(bashio::config 'key_registration_token')"
+PORT="$(bashio::config 'port')"
+KEY_NAME="$(bashio::config 'key_name')"
+KEEP_ALIVE="$(bashio::config 'keep_alive_seconds')"
+
+if bashio::var.is_empty "${TOKEN}"; then
+    bashio::log.fatal "No key_registration_token configured."
+    bashio::log.fatal "Get your token at https://openport.io/user/keys and set it in the add-on configuration."
+    bashio::exit.nok
+fi
+
+SERVER_ARGS=()
+if bashio::config.has_value 'server'; then
+    SERVER_ARGS+=(--server "$(bashio::config 'server')")
+fi
+
+VERBOSE_ARGS=()
+if bashio::config.true 'verbose'; then
+    VERBOSE_ARGS+=(--verbose)
+fi
+
+# Register the key once per token. The token itself is not stored on disk,
+# only a hash to detect configuration changes.
+TOKEN_HASH="$(echo -n "${TOKEN}" | sha256sum | cut -d' ' -f1)"
+MARKER=/data/.registered_token_hash
+if [ ! -f "${MARKER}" ] || [ "$(cat "${MARKER}")" != "${TOKEN_HASH}" ]; then
+    bashio::log.info "Registering this Home Assistant with your openport account..."
+    openport register-key \
+        --token "${TOKEN}" \
+        --name "${KEY_NAME}" \
+        "${SERVER_ARGS[@]}" "${VERBOSE_ARGS[@]}"
+    echo "${TOKEN_HASH}" > "${MARKER}"
+    bashio::log.info "Key registered."
+else
+    bashio::log.info "Key already registered, skipping registration."
+fi
+
+ARGS=(--http-forward --local-port "${PORT}" --keep-alive "${KEEP_ALIVE}")
+
+if bashio::config.true 'use_websocket_transport'; then
+    ARGS+=(--ws)
+fi
+
+if bashio::config.has_value 'ip_link_protection'; then
+    if bashio::config.true 'ip_link_protection'; then
+        ARGS+=(--ip-link-protection True)
+    else
+        ARGS+=(--ip-link-protection False)
+    fi
+fi
+
+bashio::log.info "Starting the openport tunnel to localhost:${PORT}..."
+bashio::log.info "Your public address will appear in the log below (https://<xxxxx>.u.openport.io)."
+
+exec openport "${ARGS[@]}" "${SERVER_ARGS[@]}" "${VERBOSE_ARGS[@]}"
