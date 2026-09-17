@@ -26,10 +26,6 @@ configuration:
       Require visitors to click a secret link before they can reach Home
       Assistant. May interfere with the companion apps. Leave unset to use
       your openport.io profile setting.
-  server:
-    name: Openport server
-    description: >-
-      Alternative openport server. Only for self-hosted or test setups.
   verbose:
     name: Verbose logging
     description: Enable debug logging of the openport client.
